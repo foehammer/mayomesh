@@ -67,7 +67,7 @@ Members often collaborate on small projects such as:
 
 ## Resources & Learning
 - [Meshtastic project (official docs)](https://meshtastic.org/docs/getting-started/) — great for quick device setup and examples.
-- Check out [Liam Cottle's Meshtastic Map](https://meshtastic.liamcottle.net/?lat=53.832230300637704&lng=350.7948303222657&zoom=10) to see if there are any nodes nearby that are sharing data publically.
+- Check out [Liam Cottle's Meshtastic Map](https://meshtastic.liamcottle.net/?lat=53.832230300637704&lng=350.7948303222657&zoom=10) or [Meshsense by Affirmatech](https://meshsense.affirmatech.com/) to see if there are any nodes nearby that are sharing data with the public.
 - If you wish to learn more about other radio experiments within Mayo, visit the [Mayo Radio Experimenters Network](https://www.facebook.com/p/Mayo-Radio-Experimenters-Network-100064833669220/).
 
 ---
