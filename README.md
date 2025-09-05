@@ -1,4 +1,4 @@
-![image](mayo-mesh-colour-200.png)
+![image](mayo-mesh-sticker-200.png)
 # Welcome!
 
 You’re reading the official welcome page for *Mayo Mesh*, a grassroots user group in County Mayo, Ireland focused on experimenting with peer-to-peer mesh radio networks and building hobby projects on top of them.
