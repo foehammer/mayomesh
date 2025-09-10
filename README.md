@@ -43,6 +43,12 @@ If you’ve just unboxed your first Meshtastic device, here’s how to get conne
 
 If you get stuck, don’t worry — bring your device to a meetup and we’ll help you configure it.
 
+## Custom Channel for Telemetry
+
+We have some fixed nodes deployed and so that we can monitor signal strength remotely, those fixed nodes are using a non-default primary channel. This means that you might not see these nodes via the default 'LongFast' preset alone. If you want to receive updates from those devices and join the 'MayoMesh' custom channel, [visit this link](https://meshtastic.org/e/?add=true#CjESIPQmda1ZdXSfOrmj5IqHaCj7GRFJ94Fp-pT1No2N61K2GghNYXlvTWVzaCUBAAAAEgwIATgDQANIAVAbaAE) or scan this QR code:
+
+![image](mayo-mesh-channel-add.jpeg)
+
 ## Responsible & legal operation
 Mayo Mesh is committed to operating within all applicable local laws and regulations governing radio spectrum use. That means:
 - We will only perform on-air transmissions on frequencies and power levels permitted by Irish regulations and licences where required.
