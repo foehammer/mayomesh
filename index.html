@@ -10,45 +10,88 @@
   <title>Mayo Mesh</title>
   <meta name="description" content="A site for information on mesh radio network's in Mayo, Ireland.">
 
-  <!-- Default Theme (see https://docsify.js.org/#/themes) -->
-  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
-  <!-- Mesh Data Widget -->
-<link rel="stylesheet" href="meshtastic-widget.css">
-</head>
-
-<body>
+  <!-- Docsify Theme -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css (keep relative path for GitHub Pages project sites) -->
+  <link rel="stylesheet" href="./mesbody>
 
   <div id="app"></div>
 
   <script>
-    // Docsify Configuration (see https://docsify.js.org/#/configuration)
+    // Docsify Configuration
     window.$docsify = {
       name: 'Mayo Mesh',
       image: 'mayo-mesh-colour-200.png',
+
       // Sidebar Configuration
       auto2top: true,
       loadSidebar: true,
       maxLevel: 0,
-      // Set subMaxLevel to 0 to remove automatic display of page table of contents (TOC) in Sidebar
       subMaxLevel: 3,
 
       // Search Plugin Configuration
       search: {
         placeholder: 'Type to search',
         noData: 'No matches found.',
-        // Headline depth, 1 - 6
         depth: 2,
-      }
+      },
+
+      // Plugin to (re)mount the Meshtastic widget after Docsify renders each route.
+      plugins: [
+        function (hook, vm) {
+          function mountMeshtasticWidgets() {
+            // Find possible containers (supports multiple per page).
+            var nodes = document.querySelectorAll('#my-meshtastic-telemetry, [data-meshtastic-worker]');
+            if (!nodes.length) return;
+
+            // Preferred: your script exposes a mount API
+            if (window.MeshtasticWidget && typeof window.MeshtasticWidget.mount === 'function') {
+              nodes.forEach(function (el) {
+                if (el.dataset.meshtasticMounted === '1') return;
+                window.MeshtasticWidget.mount(el);
+                el.dataset.meshtasticMounted = '1';
+              });
+              return;
+            }
+
+            // Alternative: a generic init function
+            if (typeof window.initMeshtasticTelemetry === 'function') {
+              nodes.forEach(function (el) {
+                if (el.dataset.meshtasticMounted === '1') return;
+                window.initMeshtasticTelemetry(el);
+                el.dataset.meshtasticMounted = '1';
+              });
+              return;
+            }
+
+            // Fallback: if the widget only auto-initializes on first load,
+            // re-inject the script once so it can scan the DOM again.
+            if (!document.querySelector('script[data-meshtastic-loader]')) {
+              var s = document.createElement('script');
+              s.src = './meshtastic-widget.js?v=' + Date.now(); // cache-bust in SPA
+              s.defer = true;
+              s.dataset.meshtasticLoader = '1';
+              s.onload = function () {
+                setTimeout(mountMeshtasticWidgets, 0);
+              };
+              document.head.appendChild(s);
+            }
+          }
+
+          // Run once on initial mount and on every route change
+          hook.mounted(function () {
+            setTimeout(mountMeshtasticWidgets, 0);
+          });
+          hook.doneEach(function () {
+            setTimeout(mountMeshtasticWidgets, 0);
+          });
+        }
+      ]
     };
   </script>
 
-  <!-- Required -->
-  <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/docsify.min.js"></script>
-
-  <!-- Recommended -->
-  <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/plugins/zoom-image.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/plugins/search.js"></script>
-  <!-- Mesh Data -->
-  <script src="meshtastic-widget.js"></script>
-</body>
+  <!-- Load your widget JS (defer so it’s ready by the time hooks run).
+       Placed BEFORE docsify so it's definitely available on first render. -->
+  <script src="./meshtastic-widget.js<!-- Docsify core -->
+  <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/docsify.min.js<!-- Recommended Docsify plugins -->
+  <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/plugins/zoom-image.min  <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/plugins/search</body>
 </html>
