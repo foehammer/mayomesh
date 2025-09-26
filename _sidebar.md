@@ -1,2 +1,2 @@
-- [Read Me](docs/README.md)
+- [Read Me](README.md)
 - [Mesh Data](mesh-data.html)
