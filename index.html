@@ -2,16 +2,23 @@
 <html lang="en">
 
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8">
   <meta name="viewport"
-    content="width=device-width, initial-scale=1, minimum-scale=1.0, shrink-to-fit=no, viewport-fit=cover" />
+    content="width=device-width, initial-scale=1, minimum-scale=1.0, shrink-to-fit=no, viewport-fit=cover">
 
+  <!-- Replace with your own title and description. -->
   <title>Mayo Mesh</title>
-  <meta name="description" content="A site for information on mesh radio network's in Mayo, Ireland." />
+  <meta name="description" content="A site for information on mesh radio network's in Mayo, Ireland.">
 
-  <!-- Docsify Theme -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify@4esh Data Widget CSS -->
-  <link rel="stylesheet" href="./meshtastic-widget.csspp"></div>
+  <!-- Default Theme (see https://docsify.js.org/#/themes) -->
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
+  <!-- Mesh Data Widget -->
+<link rel="stylesheet" href="meshtastic-widget.css">
+</head>
+
+<body>
+
+  <div id="app"></div>
 
   <script>
     // === Docsify Configuration ===
@@ -129,11 +136,13 @@
     };
   </script>
 
-  <!-- IMPORTANT: Load widget BEFORE Docsify so the class exists when hooks run -->
-  <script src="./meshtastic-widget.js"></script>
-  <!-- Docsify core & plugins -->
-  <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/docsify"></script>
-  <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/plugins/zoom"></script>
-  <script src="https://cdn/npm/docsify@4/lib/plugins/search.js"></script>
+  <!-- Required -->
+  <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/docsify.min.js"></script>
+
+  <!-- Recommended -->
+  <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/plugins/zoom-image.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/plugins/search.js"></script>
+  <!-- Mesh Data -->
+  <script src="meshtastic-widget.js"></script>
 </body>
 </html>

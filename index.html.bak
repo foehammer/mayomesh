@@ -21,24 +21,118 @@
   <div id="app"></div>
 
   <script>
-    // Docsify Configuration (see https://docsify.js.org/#/configuration)
+    // === Docsify Configuration ===
     window.$docsify = {
       name: 'Mayo Mesh',
       image: 'mayo-mesh-colour-200.png',
-      // Sidebar Configuration
+
+      // Sidebar
       auto2top: true,
       loadSidebar: true,
       maxLevel: 0,
-      // Set subMaxLevel to 0 to remove automatic display of page table of contents (TOC) in Sidebar
       subMaxLevel: 3,
 
-      // Search Plugin Configuration
+      // Search
       search: {
         placeholder: 'Type to search',
         noData: 'No matches found.',
-        // Headline depth, 1 - 6
         depth: 2,
-      }
+      },
+
+      // Plugin: mount Meshtastic widgets after each render
+      plugins: [
+        function (hook, vm) {
+          var instances = {};
+
+          function toInt(val, def) {
+            var n = parseInt(val, 10);
+            return isNaN(n) ? def : n;
+          }
+
+          function cleanup() {
+            // Destroy instances whose elements are no longer in the DOM
+            Object.keys(instances).forEach(function (id) {
+              var el = document.getElementById(id);
+              if (!el || !document.body.contains(el)) {
+                try { instances[id].destroy && instances[id].destroy(); } catch (e) { /* ignore */ }
+                delete instances[id];
+              }
+            });
+          }
+
+          function getCtor() {
+            // Handle both: bare class and window-attached
+            try {
+              if (typeof MeshtasticWidget === 'function') return MeshtasticWidget;
+            } catch (e) { /* ReferenceError if not declared yet */ }
+            if (typeof window.MeshtasticWidget === 'function') return window.MeshtasticWidget;
+            return null;
+          }
+
+          function mount() {
+            cleanup();
+            var Ctor = getCtor();
+            if (!Ctor) return false; // not ready yet
+
+            var nodes = document.querySelectorAll('[data-meshtastic-worker]');
+            nodes.forEach(function (el) {
+              if (el.dataset.meshtasticMounted === '1') return;
+
+              if (!el.id) {
+                el.id = 'meshtastic-' + Math.random().toString(36).slice(2);
+              }
+
+              var workerUrl = el.getAttribute('data-meshtastic-worker');
+              var opts = {};
+
+              if (el.hasAttribute('data-refresh-interval')) {
+                opts.refreshInterval = toInt(el.getAttribute('data-refresh-interval'), 60);
+              }
+              if (el.hasAttribute('data-time-range')) {
+                opts.defaultTimeRange = toInt(el.getAttribute('data-time-range'), 24);
+              }
+              if (el.hasAttribute('data-title')) {
+                opts.title = el.getAttribute('data-title');
+              }
+              if (el.hasAttribute('data-max-nodes')) {
+                opts.maxNodes = toInt(el.getAttribute('data-max-nodes'), 20);
+              }
+              if (el.hasAttribute('data-show-controls')) {
+                opts.showControls = el.getAttribute('data-show-controls') !== 'false';
+              }
+              if (el.hasAttribute('data-auto-refresh')) {
+                opts.autoRefresh = el.getAttribute('data-auto-refresh') !== 'false';
+              }
+
+              try {
+                instances[el.id] = new Ctor(el.id, workerUrl, opts);
+                el.dataset.meshtasticMounted = '1';
+              } catch (e) {
+                console.error('Meshtastic init failed for', el, e);
+              }
+            });
+
+            return true;
+          }
+
+          function mountWithRetry() {
+            // Try a few times in case the class script hasn’t executed yet
+            var attempts = 0, max = 20; // ~2s
+            var t = setInterval(function () {
+              attempts++;
+              if (mount() || attempts >= max) clearInterval(t);
+            }, 100);
+          }
+
+          hook.mounted(function () {
+            setTimeout(mountWithRetry, 0);
+          });
+
+          hook.doneEach(function () {
+            setTimeout(mountWithRetry, 0);
+          });
+        }
+      ]
     };
   </script>
 
