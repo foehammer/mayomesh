@@ -2,43 +2,37 @@
 <html lang="en">
 
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
   <meta name="viewport"
-    content="width=device-width, initial-scale=1, minimum-scale=1.0, shrink-to-fit=no, viewport-fit=cover">
+    content="width=device-width, initial-scale=1, minimum-scale=1.0, shrink-to-fit=no, viewport-fit=cover" />
 
   <title>Mayo Mesh</title>
-  <meta name="description" content="A site for information on mesh radio network's in Mayo, Ireland.">
+  <meta name="description" content="A site for information on mesh radio network's in Mayo, Ireland." />
 
   <!-- Docsify Theme -->
-  https://cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css
-
-  <!-- Mesh Data Widget CSS -->
-  ./meshtastic-widget.css
-</head>
-
-<body>
-  <div id="app"></div>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify@4esh Data Widget CSS -->
+  <link rel="stylesheet" href="./meshtastic-widget.csspp"></div>
 
   <script>
-    // Docsify Configuration
+    // === Docsify Configuration ===
     window.$docsify = {
       name: 'Mayo Mesh',
       image: 'mayo-mesh-colour-200.png',
 
-      // Sidebar Configuration
+      // Sidebar
       auto2top: true,
       loadSidebar: true,
       maxLevel: 0,
       subMaxLevel: 3,
 
-      // Search Plugin
+      // Search
       search: {
         placeholder: 'Type to search',
         noData: 'No matches found.',
         depth: 2,
       },
 
-      // Plugin: instantiate MeshtasticWidget after each Docsify render
+      // Plugin: mount Meshtastic widgets after each render
       plugins: [
         function (hook, vm) {
           var instances = {};
@@ -48,29 +42,29 @@
             return isNaN(n) ? def : n;
           }
 
-          function cleanupStaleInstances() {
+          function cleanup() {
+            // Destroy instances whose elements are no longer in the DOM
             Object.keys(instances).forEach(function (id) {
               var el = document.getElementById(id);
               if (!el || !document.body.contains(el)) {
-                try { instances[id].destroy && instances[id].destroy(); } catch (e) {}
+                try { instances[id].destroy && instances[id].destroy(); } catch (e) { /* ignore */ }
                 delete instances[id];
               }
             });
           }
 
-          function findCtor() {
-            // Handle both global binding styles:
-            //   class MeshtasticWidget {}  -> accessible as "MeshtasticWidget" (not on window)
-            //   window.MeshtasticWidget = MeshtasticWidget; -> accessible on window
-            if (typeof MeshtasticWidget === 'function') return MeshtasticWidget;
+          function getCtor() {
+            // Handle both: bare class and window-attached
+            try {
+              if (typeof MeshtasticWidget === 'function') return MeshtasticWidget;
+            } catch (e) { /* ReferenceError if not declared yet */ }
             if (typeof window.MeshtasticWidget === 'function') return window.MeshtasticWidget;
             return null;
           }
 
-          function mountOnce() {
-            cleanupStaleInstances();
-
-            var Ctor = findCtor();
+          function mount() {
+            cleanup();
+            var Ctor = getCtor();
             if (!Ctor) return false; // not ready yet
 
             var nodes = document.querySelectorAll('[data-meshtastic-worker]');
@@ -107,30 +101,27 @@
                 instances[el.id] = new Ctor(el.id, workerUrl, opts);
                 el.dataset.meshtasticMounted = '1';
               } catch (e) {
-                console.error('Failed to init MeshtasticWidget for', el, e);
+                console.error('Meshtastic init failed for', el, e);
               }
             });
 
             return true;
           }
 
-          // Retry mounting a few times in case the script is still loading
           function mountWithRetry() {
-            var attempts = 0;
-            var maxAttempts = 20; // ~2s total
-            var timer = setInterval(function () {
+            // Try a few times in case the class script hasn’t executed yet
+            var attempts = 0, max = 20; // ~2s
+            var t = setInterval(function () {
               attempts++;
-              var ok = mountOnce();
-              if (ok || attempts >= maxAttempts) clearInterval(timer);
+              if (mount() || attempts >= max) clearInterval(t);
             }, 100);
           }
 
           hook.mounted(function () {
-            // Run after initial render
             setTimeout(mountWithRetry, 0);
           });
+
           hook.doneEach(function () {
-            // Run after each route navigation
             setTimeout(mountWithRetry, 0);
           });
         }
@@ -138,12 +129,11 @@
     };
   </script>
 
-  <!-- IMPORTANT: load widget BEFORE Docsify so the class exists when hooks run -->
-  </script>./meshtastic-widget.js</script>
-
+  <!-- IMPORTANT: Load widget BEFORE Docsify so the class exists when hooks run -->
+  <script src="./meshtastic-widget.js"></script>
   <!-- Docsify core & plugins -->
-  </script>https://cdn.jsdelivr.net/npm/docsify@4/lib/docsify.min.js</script>
-  </script>https://cdn.jsdelivr.net/npm/docsify@4/lib/plugins/zoom-image.min.js</script>
-  <script src="httpsvr.net/npm/docsify@4/lib/plugins/search.js</script>
+  <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/docsify"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/plugins/zoom"></script>
+  <script src="https://cdn/npm/docsify@4/lib/plugins/search.js"></script>
 </body>
 </html>
