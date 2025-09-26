@@ -1,6 +1,6 @@
 # Mesh Data
 
-<div id="my-meshtastic-telemetry" 
+<div id="meshtastic-telemetry"
      data-meshtastic-worker="https://meshtastic-telemetry-worker.john-long2.workers.dev"
      data-title="🛰️ Mesh Network Status"
      data-show-controls="false"

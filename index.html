@@ -6,14 +6,13 @@
   <meta name="viewport"
     content="width=device-width, initial-scale=1, minimum-scale=1.0, shrink-to-fit=no, viewport-fit=cover">
 
-  <!-- Replace with your own title and description. -->
   <title>Mayo Mesh</title>
   <meta name="description" content="A site for information on mesh radio network's in Mayo, Ireland.">
 
   <!-- Docsify Theme -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css (keep relative path for GitHub Pages project sites) -->
-  <link rel="stylesheet" href="./mesbody>
-
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue CSS -->
+  <link rel="stylesheet" href="./
+<body>
   <div id="app"></div>
 
   <script>
@@ -28,70 +27,76 @@
       maxLevel: 0,
       subMaxLevel: 3,
 
-      // Search Plugin Configuration
+      // Search Plugin
       search: {
         placeholder: 'Type to search',
         noData: 'No matches found.',
         depth: 2,
       },
 
-      // Plugin to (re)mount the Meshtastic widget after Docsify renders each route.
+      // Plugin: instantiate MeshtasticWidget after each Docsify render
       plugins: [
         function (hook, vm) {
-          function mountMeshtasticWidgets() {
-            // Find possible containers (supports multiple per page).
-            var nodes = document.querySelectorAll('#my-meshtastic-telemetry, [data-meshtastic-worker]');
-            if (!nodes.length) return;
+          // Keep track of live instances so we can destroy them on navigation
+          var instances = {};
 
-            // Preferred: your script exposes a mount API
-            if (window.MeshtasticWidget && typeof window.MeshtasticWidget.mount === 'function') {
-              nodes.forEach(function (el) {
-                if (el.dataset.meshtasticMounted === '1') return;
-                window.MeshtasticWidget.mount(el);
-                el.dataset.meshtasticMounted = '1';
-              });
-              return;
-            }
-
-            // Alternative: a generic init function
-            if (typeof window.initMeshtasticTelemetry === 'function') {
-              nodes.forEach(function (el) {
-                if (el.dataset.meshtasticMounted === '1') return;
-                window.initMeshtasticTelemetry(el);
-                el.dataset.meshtasticMounted = '1';
-              });
-              return;
-            }
-
-            // Fallback: if the widget only auto-initializes on first load,
-            // re-inject the script once so it can scan the DOM again.
-            if (!document.querySelector('script[data-meshtastic-loader]')) {
-              var s = document.createElement('script');
-              s.src = './meshtastic-widget.js?v=' + Date.now(); // cache-bust in SPA
-              s.defer = true;
-              s.dataset.meshtasticLoader = '1';
-              s.onload = function () {
-                setTimeout(mountMeshtasticWidgets, 0);
-              };
-              document.head.appendChild(s);
-            }
+          function toInt(val, def) {
+            var n = parseInt(val, 10);
+            return isNaN(n) ? def : n;
           }
 
-          // Run once on initial mount and on every route change
-          hook.mounted(function () {
-            setTimeout(mountMeshtasticWidgets, 0);
-          });
-          hook.doneEach(function () {
-            setTimeout(mountMeshtasticWidgets, 0);
-          });
-        }
-      ]
-    };
-  </script>
+          function cleanupStaleInstances() {
+            Object.keys(instances).forEach(function (id) {
+              var el = document.getElementById(id);
+              // If the element is missing or detached from DOM, destroy the instance
+              if (!el || !document.body.contains(el)) {
+                try { instances[id].destroy && instances[id].destroy(); } catch (e) { /* noop */ }
+                delete instances[id];
+              }
+            });
+          }
 
-  <!-- Load your widget JS (defer so it’s ready by the time hooks run).
-       Placed BEFORE docsify so it's definitely available on first render. -->
-  <script src="./meshtastic-widget.js<!-- Docsify core -->
-  <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/docsify.min.js<!-- Recommended Docsify plugins -->
-  <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/plugins/zoom-image.min  <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/plugins/search</body>
-</html>
+          function mountMeshtasticWidgets() {
+            cleanupStaleInstances();
+
+            // Find all containers that declare a worker URL
+            var nodes = document.querySelectorAll('[data-meshtastic-worker]');
+            if (!nodes.length) return;
+
+            nodes.forEach(function (el) {
+              if (el.dataset.meshtasticMounted === '1') return;
+
+              // Ensure the element has a stable id (required by the widget)
+              if (!el.id) {
+                el.id = 'meshtastic-' + Math.random().toString(36).slice(2);
+              }
+
+              var workerUrl = el.getAttribute('data-meshtastic-worker');
+              var opts = {};
+
+              // Map data-* attributes to widget options
+              if (el.hasAttribute('data-refresh-interval')) {
+                opts.refreshInterval = toInt(el.getAttribute('data-refresh-interval'), 60);
+              }
+              if (el.hasAttribute('data-time-range')) {
+                opts.defaultTimeRange = toInt(el.getAttribute('data-time-range'), 24);
+              }
+              if (el.hasAttribute('data-title')) {
+                opts.title = el.getAttribute('data-title');
+              }
+              if (el.hasAttribute('data-max-nodes')) {
+                opts.maxNodes = toInt(el.getAttribute('data-max-nodes'), 20);
+              }
+              if (el.hasAttribute('data-show-controls')) {
+                opts.showControls = el.getAttribute('data-show-controls') !== 'false';
+              }
+              if (el.hasAttribute('data-auto-refresh')) {
+                opts.autoRefresh = el.getAttribute('data-auto-refresh') !== 'false';
+              }
+
+              // Instantiate the widget (class provided by meshtastic-widget.js)
+              if (typeof window.MeshtasticWidget === 'function') {
+                instances[el.id] = new window.MeshtasticWidget(el.id, workerUrl, opts);
+                el.dataset.meshtasticMounted = '1';
+              } else {
+                console.error('
