@@ -285,7 +285,8 @@ class MeshtasticWidget {
             }
 
             const unit = cfg.unit || '';
-            rows += `<div class="metric-row"><div class="metric-key">${cfg.label || key}</div><div class="metric-val">${display}${unit}</div></div>`;
+            // produce table row markup to preserve table-cell layout
+            rows += `<tr class="metric-row"><td class="metric-key">${cfg.label || key}</td><td class="metric-val">${display}${unit}</td></tr>`;
         }
 
         if (!rows) return '';
@@ -293,9 +294,11 @@ class MeshtasticWidget {
         return `
             <div class="metrics-section">
                 <div class="metrics-title">${title}</div>
-                <div class="metrics-rows">
-                    ${rows}
-                </div>
+                <table class="metrics-table">
+                    <tbody>
+                        ${rows}
+                    </tbody>
+                </table>
             </div>
         `;
     }
