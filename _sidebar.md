@@ -1,2 +1,3 @@
 - [Read Me](README.md)
+- [Configuration Tips](config-tips.md)
 - [Mesh Data](mesh-data.md)

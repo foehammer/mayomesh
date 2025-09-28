@@ -47,6 +47,12 @@
     background: white;
 }
 
+.meshtastic-widget .control-group input[type="number"] {
+    padding: 4px 6px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
 .meshtastic-widget .refresh-btn {
     background: linear-gradient(45deg, #667eea, #764ba2);
     color: white;
@@ -189,6 +195,21 @@
     background: #f8f9fa;
     border-radius: 8px;
     border: 1px solid #e9ecef;
+}
+
+/* Map container styling for node cards */
+.node-map {
+    width: 100%;
+    height: 200px;
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    margin-top: 8px;
+}
+
+/* Ensure leaflet attribution is legible in widget */
+.leaflet-container .leaflet-control-attribution {
+    font-size: 10px;
 }
 
 @media (max-width: 768px) {
