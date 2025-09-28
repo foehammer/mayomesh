@@ -260,6 +260,46 @@ class MeshtasticWidget {
         return card;
     }
 
+    // Render a metrics section (defensive: returns '' if no metrics)
+    renderMetricsSection(title, metrics, fields) {
+        if (!metrics || typeof metrics !== 'object' || Object.keys(metrics).length === 0) return '';
+
+        let rows = '';
+        for (const key of Object.keys(fields)) {
+            const cfg = fields[key] || {};
+            const raw = metrics[key];
+
+            if (raw === undefined || raw === null) continue;
+
+            let display = '';
+            try {
+                if (cfg.formatter && typeof cfg.formatter === 'function') {
+                    display = cfg.formatter.call(this, raw);
+                } else if (typeof raw === 'number' && typeof cfg.decimals === 'number') {
+                    display = raw.toFixed(cfg.decimals);
+                } else {
+                    display = String(raw);
+                }
+            } catch (e) {
+                display = String(raw);
+            }
+
+            const unit = cfg.unit || '';
+            rows += `<div class="metric-row"><div class="metric-key">${cfg.label || key}</div><div class="metric-val">${display}${unit}</div></div>`;
+        }
+
+        if (!rows) return '';
+
+        return `
+            <div class="metrics-section">
+                <div class="metrics-title">${title}</div>
+                <div class="metrics-rows">
+                    ${rows}
+                </div>
+            </div>
+        `;
+    }
+
     // --- Leaflet loader + map + viewshed helpers ---
     ensureLeafletLoaded() {
         if (window.L && window.L.map) return Promise.resolve();
