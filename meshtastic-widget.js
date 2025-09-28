@@ -95,6 +95,13 @@ class MeshtasticWidget {
                         <option value="168">Last 7 days</option>
                     </select>
                 </div>
+                <div class="control-group">
+                    <label><input type="checkbox" id="${this.containerId}-showViewshed" checked> Show viewshed</label>
+                </div>
+                <div class="control-group">
+                    <label for="${this.containerId}-viewshedLimit">Viewshed max (km):</label>
+                    <input id="${this.containerId}-viewshedLimit" type="number" min="1" max="100" value="${this.options.viewshedLimitKm || 100}" style="width:80px" />
+                </div>
                 <button id="${this.containerId}-refreshBtn" class="refresh-btn">🔄 Refresh</button>
             </div>
         `;
@@ -202,6 +209,11 @@ class MeshtasticWidget {
         
         const timeAgo = this.getTimeAgo(new Date(node.timestamp));
         
+        // Prepare map container id if position present
+        const hasPos = node.position && node.position.latitude && node.position.longitude;
+        const mapId = `${this.containerId}-map-${node.node_id.replace(/[^a-zA-Z0-9_-]/g, '')}`;
+        const mapHtml = hasPos ? `<div id="${mapId}" class="node-map" style="height:200px;margin-top:10px;border-radius:6px;overflow:hidden;"></div>` : '';
+
         card.innerHTML = `
             <div class="node-header">
                 <div class="node-id">${node.node_id}</div>
@@ -221,45 +233,142 @@ class MeshtasticWidget {
                 relativeHumidity: { label: 'Humidity', unit: '%', decimals: 1 },
                 barometricPressure: { label: 'Pressure', unit: ' hPa', decimals: 2 }
             })}
+            
+            ${hasPos ? `
+                <div class="metrics-section">
+                    <div class="metrics-title">Position</div>
+                    <div style="font-size:0.9em;color:#444;">
+                        Lat: ${Number(node.position.latitude).toFixed(6)}, Lon: ${Number(node.position.longitude).toFixed(6)}
+                        ${node.position.altitude ? `, Alt: ${node.position.altitude}m` : ''}
+                    </div>
+                    ${mapHtml}
+                </div>
+            ` : ''}
         `;
         
+        // Init map after element inserted in DOM
+        setTimeout(() => {
+            if (hasPos) {
+                this.ensureLeafletLoaded().then(() => {
+                    this.initNodeMap(node, mapId);
+                }).catch(err => {
+                    console.error('Leaflet load failed', err);
+                });
+            }
+        }, 20);
+
         return card;
     }
 
-    renderMetricsSection(title, metrics, config) {
-        if (!metrics || Object.keys(metrics).length === 0) {
-            return '';
-        }
+    // --- Leaflet loader + map + viewshed helpers ---
+    ensureLeafletLoaded() {
+        if (window.L && window.L.map) return Promise.resolve();
+        if (this._leafletLoadPromise) return this._leafletLoadPromise;
 
-        const metricItems = Object.entries(metrics)
-            .filter(([key, value]) => value !== undefined && value !== null && config[key])
-            .map(([key, value]) => {
-                const cfg = config[key];
-                let displayValue;
-                
-                if (cfg.formatter) {
-                    displayValue = cfg.formatter(value);
+        this._leafletLoadPromise = new Promise((resolve, reject) => {
+            // Load CSS
+            const cssHref = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+            if (!document.querySelector(`link[href="${cssHref}"]`)) {
+                const link = document.createElement('link');
+                link.rel = 'stylesheet';
+                link.href = cssHref;
+                document.head.appendChild(link);
+            }
+
+            // Load JS
+            const script = document.createElement('script');
+            script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+            script.onload = () => resolve();
+            script.onerror = () => reject(new Error('Failed to load Leaflet'));
+            document.head.appendChild(script);
+        });
+
+        return this._leafletLoadPromise;
+    }
+
+    initNodeMap(node, mapId) {
+        try {
+            const lat = Number(node.position.latitude);
+            const lon = Number(node.position.longitude);
+            if (!isFinite(lat) || !isFinite(lon)) return;
+
+            const map = L.map(mapId, { zoomControl: false, attributionControl: false }).setView([lat, lon], 12);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 18,
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+
+            const marker = L.circleMarker([lat, lon], { radius: 6, fillColor: '#2a9df4', color: '#fff', weight: 2 }).addTo(map);
+
+            // Read max range control
+            const limitEl = document.getElementById(`${this.containerId}-viewshedLimit`);
+            const userLimitKm = limitEl ? Number(limitEl.value) : (this.options.viewshedLimitKm || 100);
+            const userLimitMeters = (isFinite(userLimitKm) && userLimitKm > 0) ? userLimitKm * 1000 : 100000;
+
+            // Compute approximate viewshed radius (meters)
+            const viewshedMeters = this.computeViewshedRadiusMeters(1.7); // 1.7m default
+            const maxRangeMeters = Math.min(userLimitMeters, 100000); // 100 km cap
+            const radiusMeters = Math.min(viewshedMeters, maxRangeMeters);
+
+            const viewshedCircle = L.circle([lat, lon], {
+                radius: radiusMeters,
+                color: '#ff8800',
+                weight: 1,
+                fillColor: '#ffcc88',
+                fillOpacity: 0.15
+            });
+
+            // Show/Hide based on global control (per-widget checkbox)
+            const showViewshedEl = document.getElementById(`${this.containerId}-showViewshed`);
+            const applyViewshed = () => {
+                if (showViewshedEl && showViewshedEl.checked) {
+                    if (!map.hasLayer(viewshedCircle)) viewshedCircle.addTo(map);
                 } else {
-                    const decimals = cfg.decimals || 0;
-                    displayValue = Number(value).toFixed(decimals) + (cfg.unit || '');
+                    if (map.hasLayer(viewshedCircle)) map.removeLayer(viewshedCircle);
                 }
-                
-                return `
-                    <div class="metric-item">
-                        <div class="metric-label">${cfg.label}</div>
-                        <div class="metric-value">${displayValue}</div>
-                    </div>
-                `;
-            }).join('');
+            };
 
-        return metricItems ? `
-            <div class="metrics-section">
-                <div class="metrics-title">${title}</div>
-                <div class="metrics-grid">
-                    ${metricItems}
-                </div>
-            </div>
-        ` : '';
+            // initial apply
+            applyViewshed();
+
+            // react to toggle changes
+            showViewshedEl?.addEventListener('change', () => applyViewshed());
+
+            // react to limit changes: update circle radius
+            limitEl?.addEventListener('change', () => {
+                const newLimitKm = Number(limitEl.value) || 100;
+                const newLimitMeters = Math.min(newLimitKm * 1000, 100000);
+                const newRadius = Math.min(this.computeViewshedRadiusMeters(1.7), newLimitMeters);
+                viewshedCircle.setRadius(newRadius);
+                // refit bounds to show circle if visible
+                try { if (map.hasLayer(viewshedCircle)) map.fitBounds(viewshedCircle.getBounds(), { maxZoom: 12, padding: [10,10] }); } catch(e){}
+            });
+
+            // expose map for debugging if needed
+            if (!this._maps) this._maps = {};
+            this._maps[mapId] = { map, marker, viewshedCircle };
+
+            // Fit bounds to circle but limit zoom
+            try {
+                const bounds = viewshedCircle.getBounds();
+                map.fitBounds(bounds, { maxZoom: 12, padding: [10, 10] });
+            } catch (e) {
+                // ignore
+            }
+
+        } catch (e) {
+            console.error('initNodeMap error', e);
+        }
+    }
+
+    computeViewshedRadiusMeters(heightMeters = 1.7) {
+        // Approximate radio horizon formula:
+        // d_km ≈ 3.57 * (sqrt(h_tx_m) + sqrt(h_rx_m))
+        // assume receiver at same height (1.7 m)
+        const hTx = Number(heightMeters) || 1.7;
+        const hRx = 1.7;
+        const dKm = 3.57 * (Math.sqrt(hTx) + Math.sqrt(hRx));
+        return Math.min(dKm * 1000, 100000);
     }
 
     formatUptime(seconds) {
