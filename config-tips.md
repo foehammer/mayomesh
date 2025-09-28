@@ -4,6 +4,10 @@ Whilst getting a node up and running can be easy, ensuring that your node is per
 
 Here's some tips that we've gathered along the way.
 
+## Router/Repeater Mode
+
+You probably don't need to run your node as router. In nearly all cases, the client mode will do just fine.
+
 ## Smart Position
 
 If you're using your meshtastic device for tracking an activity or a group of you on an excursion, [smart position](https://meshtastic.org/docs/configuration/radio/position/#smart-broadcast) can be very handy. Once you've travelled a certain distance, your node will send a location message out to the mesh informing everyone of your location.
