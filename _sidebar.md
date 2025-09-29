@@ -1,3 +1,4 @@
 - [Read Me](README.md)
+- [What Device?](what-device.md)
 - [Configuration Tips](config-tips.md)
 - [Mesh Data](mesh-data.md)
