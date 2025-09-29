@@ -8,6 +8,10 @@ You’re reading the official welcome page for *Mayo Mesh*, a grassroots user gr
 ## Who we are
 Mayo Mesh is a friendly, volunteer-run community of hobbyists, radio enthusiasts, makers, coders and curious people who enjoy learning by doing. We are entirely independent and **not affiliated with any commercial organisation**. Our activities are local, community-focused and open to anyone with an interest in mesh radio technology.
 
+Our current coverage area:
+
+![image](/current_coverage_medium.png)
+
 ## Our purpose
 - Experiment with peer-to-peer mesh radio networks (e.g., Meshtastic and similar platforms).
 - Build small hobby projects and demos to explore mesh communication capabilities.
