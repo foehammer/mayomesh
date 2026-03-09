@@ -130,10 +130,18 @@
     flex-wrap: wrap;
 }
 
-.meshtastic-widget .node-id {
+.meshtastic-widget .node-name {
     font-weight: bold;
     color: #333;
     font-size: 1em;
+}
+
+.meshtastic-widget .node-id,
+.meshtastic-widget .node-id-sub {
+    font-size: 0.75em;
+    color: #888;
+    font-weight: normal;
+    word-break: break-all;
 }
 
 .meshtastic-widget .node-time {

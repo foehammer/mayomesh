@@ -226,9 +226,10 @@ class MeshtasticWidget {
         card.innerHTML = `
             <div class="node-header">
                 <div class="node-header-left">
-                    <div class="node-id">${node.node_id}</div>
+                    <div class="node-name">${node.node_name || node.node_id}</div>
                     ${protocolBadge}
                 </div>
+                <div class="node-id-sub">${node.node_id}</div>
                 <div class="node-time">${timeAgo}</div>
             </div>
             
