@@ -237,7 +237,10 @@ class MeshtasticWidget {
                 voltage: { label: 'Voltage', unit: 'V', decimals: 2 },
                 channelUtilization: { label: 'Channel Util', unit: '%', decimals: 1 },
                 airUtilTx: { label: 'Air Util TX', unit: '%', decimals: 1 },
-                uptimeSeconds: { label: 'Uptime', formatter: this.formatUptime }
+                uptimeSeconds: { label: 'Uptime', formatter: this.formatUptime },
+                snr: { label: 'SNR', unit: ' dB', decimals: 2 },
+                rssi: { label: 'RSSI', unit: ' dBm' },
+                noiseFloor: { label: 'Noise Floor', unit: ' dBm' }
             })}
             
             ${this.renderMetricsSection('Environment Metrics', node.environment_metrics, {
