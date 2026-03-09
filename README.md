@@ -49,7 +49,7 @@ Members often collaborate on small projects such as:
 
 ## Resources & Learning
 - If you wish to learn more about other radio experiments within Mayo, visit the [Mayo Radio Experimenters Network](https://www.facebook.com/p/Mayo-Radio-Experimenters-Network-100064833669220/).
-
+- For other LoRa related experiments, see the [LoRa Project](https://loraproject.ie/#/).
 ---
 
 *Created for Mayo Mesh — a local, volunteer-run mesh radio user group in County Mayo.*
