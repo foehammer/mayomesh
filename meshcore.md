@@ -37,7 +37,7 @@ The two platforms use different protocols and are **not directly interoperable**
 
 3. **Configure your node**
    - Use the MeshCore companion app to set your node's role (client or repeater), frequency, and channel settings.
-   - For EU operation, use the **EU868** region settings.
+   - For operation, use the **EU/UK Narrow** preset settings.
 
 4. **Connect to the network**
    - Once configured, your node will begin communicating with any other MeshCore nodes within range.
