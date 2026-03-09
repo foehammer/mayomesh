@@ -1,5 +1,7 @@
 - [Read Me](README.md)
+- [Meshtastic](meshtastic.md)
+- [MeshCore](meshcore.md)
 - [What Device?](what-device.md)
 - [Configuration Tips](config-tips.md)
 - [Mesh Data](mesh-data.md)
-- [MeshMonitor (Live)](mesh-monitor.md)
+- [MeshMonitor](mesh-monitor.md)

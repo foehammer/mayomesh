@@ -203,12 +203,21 @@ class MeshtasticWidget {
         });
     }
 
+    getProtocolBadge(source) {
+        if (!source) return '';
+        const isMeshCore = source.toLowerCase().includes('meshcore');
+        const label = isMeshCore ? 'MeshCore' : 'Meshtastic';
+        const cls = isMeshCore ? 'protocol-badge protocol-badge--meshcore' : 'protocol-badge protocol-badge--meshtastic';
+        return `<span class="${cls}">${label}</span>`;
+    }
+
     createNodeCard(node) {
         const card = document.createElement('div');
         card.className = 'node-card';
-        
+
         const timeAgo = this.getTimeAgo(new Date(node.timestamp));
-        
+        const protocolBadge = this.getProtocolBadge(node.source);
+
         // Prepare map container id if position present
         const hasPos = node.position && node.position.latitude && node.position.longitude;
         const mapId = `${this.containerId}-map-${node.node_id.replace(/[^a-zA-Z0-9_-]/g, '')}`;
@@ -216,7 +225,10 @@ class MeshtasticWidget {
 
         card.innerHTML = `
             <div class="node-header">
-                <div class="node-id">${node.node_id}</div>
+                <div class="node-header-left">
+                    <div class="node-id">${node.node_id}</div>
+                    ${protocolBadge}
+                </div>
                 <div class="node-time">${timeAgo}</div>
             </div>
             
