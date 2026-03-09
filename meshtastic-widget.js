@@ -218,10 +218,7 @@ class MeshtasticWidget {
         const timeAgo = this.getTimeAgo(new Date(node.timestamp));
         const protocolBadge = this.getProtocolBadge(node.source);
 
-        // Prepare map container id if position present
         const hasPos = node.position && node.position.latitude && node.position.longitude;
-        const mapId = `${this.containerId}-map-${node.node_id.replace(/[^a-zA-Z0-9_-]/g, '')}`;
-        const mapHtml = hasPos ? `<div id="${mapId}" class="node-map" style="height:200px;margin-top:10px;border-radius:6px;overflow:hidden;"></div>` : '';
 
         card.innerHTML = `
             <div class="node-header">
@@ -229,10 +226,10 @@ class MeshtasticWidget {
                     <div class="node-name">${node.node_name || node.node_id}</div>
                     ${protocolBadge}
                 </div>
-                <div class="node-id-sub">${node.node_id}</div>
                 <div class="node-time">${timeAgo}</div>
+                <div class="node-id-sub">${node.node_id}</div>
             </div>
-            
+
             ${this.renderMetricsSection('Device Metrics', node.device_metrics, {
                 batteryLevel: { label: 'Battery', unit: '%' },
                 voltage: { label: 'Voltage', unit: 'V', decimals: 2 },
@@ -243,35 +240,30 @@ class MeshtasticWidget {
                 rssi: { label: 'RSSI', unit: ' dBm' },
                 noiseFloor: { label: 'Noise Floor', unit: ' dBm' }
             })}
-            
+
             ${this.renderMetricsSection('Environment Metrics', node.environment_metrics, {
                 temperature: { label: 'Temperature', unit: '°C', decimals: 1 },
                 relativeHumidity: { label: 'Humidity', unit: '%', decimals: 1 },
                 barometricPressure: { label: 'Pressure', unit: ' hPa', decimals: 2 }
             })}
-            
+
             ${hasPos ? `
                 <div class="metrics-section">
                     <div class="metrics-title">Position</div>
-                    <div style="font-size:0.9em;color:#444;">
-                        Lat: ${Number(node.position.latitude).toFixed(6)}, Lon: ${Number(node.position.longitude).toFixed(6)}
-                        ${node.position.altitude ? `, Alt: ${node.position.altitude}m` : ''}
-                    </div>
-                    ${mapHtml}
+                    <button class="location-badge" data-node-id="${node.node_id}">
+                        📍 <span class="loc-coords">${Number(node.position.latitude).toFixed(5)}, ${Number(node.position.longitude).toFixed(5)}</span>
+                        ${node.position.altitude ? `· ${node.position.altitude}m` : ''}
+                        <span style="opacity:0.6;font-size:0.9em;">— View map</span>
+                    </button>
                 </div>
             ` : ''}
         `;
-        
-        // Init map after element inserted in DOM
-        setTimeout(() => {
-            if (hasPos) {
-                this.ensureLeafletLoaded().then(() => {
-                    this.initNodeMap(node, mapId);
-                }).catch(err => {
-                    console.error('Leaflet load failed', err);
-                });
-            }
-        }, 20);
+
+        if (hasPos) {
+            card.querySelector('.location-badge').addEventListener('click', () => {
+                this.showLocationModal(node);
+            });
+        }
 
         return card;
     }
@@ -351,23 +343,23 @@ class MeshtasticWidget {
             const lon = Number(node.position.longitude);
             if (!isFinite(lat) || !isFinite(lon)) return;
 
-            const map = L.map(mapId, { zoomControl: false, attributionControl: false }).setView([lat, lon], 12);
+            const map = L.map(mapId, { zoomControl: true, attributionControl: true }).setView([lat, lon], 13);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 18,
                 attribution: '&copy; OpenStreetMap contributors'
             }).addTo(map);
 
-            const marker = L.circleMarker([lat, lon], { radius: 6, fillColor: '#2a9df4', color: '#fff', weight: 2 }).addTo(map);
+            const marker = L.circleMarker([lat, lon], { radius: 7, fillColor: '#2a9df4', color: '#fff', weight: 2, fillOpacity: 0.9 })
+                .bindPopup(node.node_name || node.node_id)
+                .addTo(map);
 
-            // Read max range control
+            // Read max range control if present in the widget controls
             const limitEl = document.getElementById(`${this.containerId}-viewshedLimit`);
             const userLimitKm = limitEl ? Number(limitEl.value) : (this.options.viewshedLimitKm || 100);
             const userLimitMeters = (isFinite(userLimitKm) && userLimitKm > 0) ? userLimitKm * 1000 : 100000;
 
-            // Compute approximate viewshed radius (meters)
-            const viewshedMeters = this.computeViewshedRadiusMeters(1.7); // 1.7m default
-            const maxRangeMeters = Math.min(userLimitMeters, 100000); // 100 km cap
-            const radiusMeters = Math.min(viewshedMeters, maxRangeMeters);
+            const viewshedMeters = this.computeViewshedRadiusMeters(1.7);
+            const radiusMeters = Math.min(viewshedMeters, userLimitMeters, 100000);
 
             const viewshedCircle = L.circle([lat, lon], {
                 radius: radiusMeters,
@@ -377,43 +369,30 @@ class MeshtasticWidget {
                 fillOpacity: 0.15
             });
 
-            // Show/Hide based on global control (per-widget checkbox)
             const showViewshedEl = document.getElementById(`${this.containerId}-showViewshed`);
             const applyViewshed = () => {
-                if (showViewshedEl && showViewshedEl.checked) {
+                if (!showViewshedEl || showViewshedEl.checked) {
                     if (!map.hasLayer(viewshedCircle)) viewshedCircle.addTo(map);
                 } else {
                     if (map.hasLayer(viewshedCircle)) map.removeLayer(viewshedCircle);
                 }
             };
-
-            // initial apply
             applyViewshed();
-
-            // react to toggle changes
             showViewshedEl?.addEventListener('change', () => applyViewshed());
 
-            // react to limit changes: update circle radius
             limitEl?.addEventListener('change', () => {
                 const newLimitKm = Number(limitEl.value) || 100;
-                const newLimitMeters = Math.min(newLimitKm * 1000, 100000);
-                const newRadius = Math.min(this.computeViewshedRadiusMeters(1.7), newLimitMeters);
+                const newRadius = Math.min(this.computeViewshedRadiusMeters(1.7), newLimitKm * 1000, 100000);
                 viewshedCircle.setRadius(newRadius);
-                // refit bounds to show circle if visible
-                try { if (map.hasLayer(viewshedCircle)) map.fitBounds(viewshedCircle.getBounds(), { maxZoom: 12, padding: [10,10] }); } catch(e){}
+                try { if (map.hasLayer(viewshedCircle)) map.fitBounds(viewshedCircle.getBounds(), { maxZoom: 12, padding: [10, 10] }); } catch(e){}
             });
 
-            // expose map for debugging if needed
             if (!this._maps) this._maps = {};
             this._maps[mapId] = { map, marker, viewshedCircle };
 
-            // Fit bounds to circle but limit zoom
             try {
-                const bounds = viewshedCircle.getBounds();
-                map.fitBounds(bounds, { maxZoom: 12, padding: [10, 10] });
-            } catch (e) {
-                // ignore
-            }
+                map.fitBounds(viewshedCircle.getBounds(), { maxZoom: 13, padding: [10, 10] });
+            } catch (e) {}
 
         } catch (e) {
             console.error('initNodeMap error', e);
@@ -428,6 +407,61 @@ class MeshtasticWidget {
         const hRx = 1.7;
         const dKm = 3.57 * (Math.sqrt(hTx) + Math.sqrt(hRx));
         return Math.min(dKm * 1000, 100000);
+    }
+
+    showLocationModal(node) {
+        // Remove any existing modal
+        const existing = document.getElementById('mesh-location-modal');
+        if (existing) existing.remove();
+
+        const lat = Number(node.position.latitude);
+        const lon = Number(node.position.longitude);
+        const alt = node.position.altitude ? `${node.position.altitude} m` : '—';
+        const name = node.node_name || node.node_id;
+        const modalId = 'mesh-modal-map-' + Math.random().toString(36).slice(2);
+
+        const overlay = document.createElement('div');
+        overlay.id = 'mesh-location-modal';
+        overlay.className = 'mesh-modal-overlay';
+        overlay.innerHTML = `
+            <div class="mesh-modal" role="dialog" aria-modal="true" aria-label="Node location">
+                <div class="mesh-modal-header">
+                    <div>
+                        <div class="mesh-modal-title">📍 ${name}</div>
+                        <div class="mesh-modal-subtitle">${node.node_id}</div>
+                    </div>
+                    <button class="mesh-modal-close" aria-label="Close">✕</button>
+                </div>
+                <div id="${modalId}" class="mesh-modal-map"></div>
+                <div class="mesh-modal-footer">
+                    <div class="coord-item">
+                        <span class="coord-label">Latitude</span>
+                        <span class="coord-val">${lat.toFixed(6)}</span>
+                    </div>
+                    <div class="coord-item">
+                        <span class="coord-label">Longitude</span>
+                        <span class="coord-val">${lon.toFixed(6)}</span>
+                    </div>
+                    <div class="coord-item">
+                        <span class="coord-label">Altitude</span>
+                        <span class="coord-val">${alt}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        const close = () => overlay.remove();
+        overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+        overlay.querySelector('.mesh-modal-close').addEventListener('click', close);
+        document.addEventListener('keydown', function esc(e) {
+            if (e.key === 'Escape') { close(); document.removeEventListener('keydown', esc); }
+        });
+
+        document.body.appendChild(overlay);
+
+        this.ensureLeafletLoaded().then(() => {
+            this.initNodeMap(node, modalId);
+        }).catch(err => console.error('Leaflet load failed', err));
     }
 
     formatUptime(seconds) {
