@@ -48,3 +48,4 @@ The two platforms use different protocols and are **not directly interoperable**
 
 - [MeshCore official site](https://meshcore.co.uk/)
 - [MeshCore GitHub](https://github.com/ripplebiz/MeshCore)
+- [LoRa Project Ireland](https://loraproject.ie)
