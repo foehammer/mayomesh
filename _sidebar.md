@@ -4,5 +4,4 @@
 - [What Device?](what-device.md)
 - [Configuration Tips](config-tips.md)
 - [Mesh Data](mesh-data.md)
-- [Meshtastic Map](mesh-monitor.md)
 - [MeshCore Map](https://meshcore.mayomesh.net/)
