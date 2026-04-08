@@ -2,6 +2,5 @@
 - [Meshtastic](meshtastic.md)
 - [MeshCore](meshcore.md)
 - [What Device?](what-device.md)
-- [Configuration Tips](config-tips.md)
 - [Mesh Data](mesh-data.md)
 - [MeshCore Map](https://meshcore.mayomesh.net/)
