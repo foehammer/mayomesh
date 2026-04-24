@@ -1,6 +1,6 @@
 # MeshCore
 
-[MeshCore](https://meshcore.co.uk/) is an open-source LoRa mesh networking platform designed with a focus on reliable, structured communication infrastructure. Where Meshtastic targets ease of use for individuals, MeshCore is built around a client/repeater architecture that gives you more control over how messages are routed across a network.
+[MeshCore](https://meshcore.io/) is an open-source LoRa mesh networking platform designed with a focus on reliable, structured communication infrastructure. Where Meshtastic targets ease of use for individuals, MeshCore is built around a client/repeater architecture that gives you more control over how messages are routed across a network.
 
 **MeshCore is great for:**
 - Building reliable fixed infrastructure (dedicated repeater nodes)
@@ -9,7 +9,7 @@
 - Running a mix of infrastructure nodes and lightweight client devices
 - Longer-term deployments where power efficiency and link reliability are priorities
 
-MeshCore devices are configured using the [MeshCore companion app](https://meshcore.co.uk/) and firmware is available for a range of common LoRa hardware platforms.
+MeshCore devices are configured using the [MeshCore companion app](https://meshcore.io/) and firmware is available for a range of common LoRa hardware platforms.
 
 ---
 
@@ -30,7 +30,7 @@ The two platforms use different protocols and are **not directly interoperable**
 ## Getting started with MeshCore
 
 1. **Check supported hardware**
-   - MeshCore runs on many of the same LoRa boards used by Meshtastic (e.g. Heltec, RAK, T-Echo). Check the [MeshCore documentation](https://meshcore.co.uk/) for the current list of supported devices.
+   - MeshCore runs on many of the same LoRa boards used by Meshtastic (e.g. Heltec, RAK, T-Echo). Check the [MeshCore documentation](https://meshcore.io/) for the current list of supported devices.
 
 2. **Flash the firmware**
    - Download the appropriate MeshCore firmware for your board and flash it using your preferred flashing tool.
@@ -46,6 +46,6 @@ The two platforms use different protocols and are **not directly interoperable**
 
 ## Resources
 
-- [MeshCore official site](https://meshcore.co.uk/)
+- [MeshCore official site](https://meshcore.io/)
 - [MeshCore GitHub](https://github.com/ripplebiz/MeshCore)
 - [LoRa Project Ireland](https://loraproject.ie)
