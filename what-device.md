@@ -4,7 +4,7 @@ Most LoRa mesh hardware is **firmware-agnostic** — the same board can run eith
 
 **MeshCore is the primary protocol used by Mayo Mesh** for its fixed infrastructure. If you're joining the network or setting up a node intended to connect to the group's repeaters, MeshCore is the recommended starting point. Meshtastic remains well-supported and is a great choice for casual, portable, or personal use.
 
-For a comprehensive list of supported hardware, check the documentation for [MeshCore](https://meshcore.co.uk/) and [Meshtastic](https://meshtastic.org/docs/hardware/devices/) respectively — support across both platforms is broadly similar.
+For a comprehensive list of supported hardware, check the documentation for [MeshCore](https://meshcore.io/) and [Meshtastic](https://meshtastic.org/docs/hardware/devices/) respectively — support across both platforms is broadly similar.
 
 ---
 
@@ -27,11 +27,3 @@ For use on the move, smaller and more rugged options work well.
 The **[Seeed Studio SenseCAP T1000-E](https://www.seeedstudio.com/SenseCAP-Card-Tracker-T1000-E-for-Meshtastic-p-5913.html)** is a compact card-sized tracker with an IP65 rating and built-in GPS. It clips to a belt or backpack easily and offers roughly two days of battery life under typical use.
 
 The **[RAK WisMesh Tag](https://store.rakwireless.com/products/wismesh-tag)** is a similar form factor from RAK — lightweight and portable, running on the same NRF52-based platform as the rest of the WisBlock range.
-
-The **[Seeed Studio Wio Tracker L1 Pro](https://www.seeedstudio.com/Wio-Tracker-L1-Pro-p-6454.html)** is a well-rounded portable option — NRF52840-based, with built-in GPS, a small OLED display, a 2000mAh battery (up to ~5 days), and solar input support. It's available pre-flashed for either Meshtastic or MeshCore, making it one of the more straightforward out-of-the-box choices for either protocol.
-
-For something with a more capable antenna, the **[Muzi Works H2T](https://muzi.works/products/h2t-complete-device-heltec-t114-with-gps-running-meshtastic)** (based on the Heltec T114 module) is a popular option where range is a priority.
-
----
-
-These are devices we have direct experience with — do your own research and pick whatever suits your use case and budget. When in doubt, bring questions to a meetup and we can help you decide.
