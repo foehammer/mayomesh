@@ -1,0 +1,32 @@
+<!-- After the docsify script tag -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://unpkg.com/leaflet-kmz@latest/dist/leaflet-kmz.js"></script>
+
+<script>
+  window.$docsify = {
+    // ...your existing config...
+    plugins: [
+      function (hook) {
+        hook.doneEach(function () {
+          const el = document.getElementById('kmz-map');
+          if (!el || el._leaflet_id) return;  // not this page, or already init'd
+
+          const map = L.map('kmz-map').setView([53.3, -7.8], 7);
+
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+          }).addTo(map);
+
+          const parser = new L.KMZParser({ autoFit: true });
+          parser.on('loaded', (e) => e.layer.addTo(map));
+
+          document.getElementById('kmz-input').addEventListener('change', function (evt) {
+            const file = evt.target.files[0];
+            if (file) parser.load(file);
+          });
+        });
+      }
+    ]
+  };
+</script>
