@@ -10,7 +10,7 @@ Mayo Mesh is a friendly, volunteer-run community of hobbyists, radio enthusiasts
 
 Our current coverage area:
 
-![image](/current_coverage_medium.png)
+![image](/image.jpeg)
 
 ## Our purpose
 - Experiment with peer-to-peer mesh radio networks including [Meshtastic](meshtastic) and [MeshCore](meshcore).
