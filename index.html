@@ -12,6 +12,7 @@
 
   <!-- Default Theme (see https://docsify.js.org/#/themes) -->
   <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
   <!-- Mesh Data Widget -->
 <link rel="stylesheet" href="meshtastic-widget.css">
 </head>
@@ -144,7 +145,7 @@
 
             const parser = new L.KMZParser({ autoFit: true });
             parser.on('loaded', (e) => e.layer.addTo(map));
-            parser.load('./data/my-map.kmz');
+            parser.load('./coverage_868mhz_google_earth.kmz');
           });
         }        
       ]
