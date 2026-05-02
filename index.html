@@ -143,9 +143,8 @@
               attribution: '© OpenStreetMap contributors'
             }).addTo(map);
 
-            const parser = new L.KMZParser({ autoFit: true });
-            parser.on('loaded', (e) => e.layer.addTo(map));
-            parser.load('./coverage_868mhz_google_earth.kmz');
+            const kmzLayer = L.kmzLayer().addTo(map);
+            kmzLayer.load('./coverage_868mhz_google_earth.kmz');
           });
         }        
       ]
