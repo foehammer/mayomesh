@@ -131,7 +131,22 @@
           hook.doneEach(function () {
             setTimeout(mountWithRetry, 0);
           });
-        }
+        },
+        function (hook) {
+          hook.doneEach(function () {
+            const el = document.getElementById('kmz-map');
+            if (!el || el._leaflet_id) return;
+
+            const map = L.map('kmz-map').setView([53.3, -7.8], 7);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+              attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+
+            const parser = new L.KMZParser({ autoFit: true });
+            parser.on('loaded', (e) => e.layer.addTo(map));
+            parser.load('./data/my-map.kmz');
+          });
+        }        
       ]
     };
   </script>
