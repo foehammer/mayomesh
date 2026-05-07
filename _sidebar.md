@@ -1,4 +1,5 @@
-- [Read Me](README.md)
+- [Welcome(README.md)
+- [Getting Started](getting-started.md)
 - [Meshtastic](meshtastic.md)
 - [MeshCore](meshcore.md)
 - [What Device?](what-device.md)
