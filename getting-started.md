@@ -88,6 +88,9 @@ You should now see your node on the app's map view. It may take a few minutes fo
 
 To actively search for local repeaters, go to **Tools → Discover Nearby Nodes → Discover Repeaters**.
 
+The 'Public' chat channel will show everything, but we're getting **a lot** of packet's bouncing over from the UK so you may get lost in the noise.
+For best results, join a hashtag channel like **#ireland** or **#mayo**.
+
 ---
 
 ## Connecting to the Irish Network
