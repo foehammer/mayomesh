@@ -5,3 +5,4 @@
 - [Meshtastic Data](mesh-data.md)
 - [Meshcore Coverage Area](mc-coverage.md)
 - [MeshCore Map](https://meshcore.mayomesh.net/)
+- [Health Check](https://healthcheck.mayomesh.net)
