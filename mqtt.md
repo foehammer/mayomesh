@@ -17,10 +17,18 @@ We publish ready-to-flash images for Heltec V3 and V4 with the Mayo Mesh broker 
 
 What's already set:
 - Radio: **EU/UK Narrow** (869.618 MHz / BW62.5 / SF8) — same as the rest of the Mayo Mesh network
-- MQTT slot 3: connected to `wss://mqtt.mayomesh.net:443` (JWT auth, no credentials to enter)
-- Slots 1–2 still default to the public `analyzer-us` / `analyzer-eu` presets — leave them or disable with `set mqtt1.preset none` / `set mqtt2.preset none`
+- MQTT connection: `wss://mqtt.mayomesh.net:443` (JWT auth, no credentials to enter)
 
-### Option A: esptool (reliable, confirmed working)
+The slot layout differs by board, because **Heltec V3 has no PSRAM and can only run 2 active TLS/WSS MQTT connections at once** (V4 has PSRAM and can run all 6):
+
+| | Slot 1 | Slot 2 | Slot 3 |
+|---|---|---|---|
+| **V4** | `analyzer-us` (public) | `analyzer-eu` (public) | **`mayomesh`** |
+| **V3** | disabled | **`mayomesh`** | disabled |
+
+On V3, both public analyzer presets are disabled by default so mayomesh is guaranteed one of the 2 available slots — otherwise it would land in slot 3 behind the two public presets and silently show as `(inactive)`. Re-enable a public preset on V3 with e.g. `set mqtt1.preset analyzer-eu`, but note doing so may bump mayomesh to inactive since you'd be back at 3 configured slots on a 2-slot board. On V4, tune with `set mqtt1.preset none` / `set mqtt2.preset none` as you like — there's headroom.
+
+### Flash it
 
 Put the board into bootloader mode — hold **BOOT**, press and release **RST**, then release **BOOT** (same as in [Getting Started](getting-started.md)) — then with [esptool](https://github.com/espressif/esptool) installed (`pip install esptool`):
 
@@ -29,25 +37,13 @@ esptool.py --chip esp32s3 --port /dev/ttyUSB0 erase_flash
 esptool.py --chip esp32s3 --port /dev/ttyUSB0 write_flash 0x0 mayomesh-heltec-v4-mqtt-observer.bin
 ```
 
-Swap in the V3 filename and your actual serial port (`COMx` on Windows) as needed. The `erase_flash` step matters if the device was flashed by something else before (like the official web flasher) — it clears out any leftover bootloader/partition data so nothing old is left behind to conflict with the new image. This is a single **merged** image (bootloader + partition table + app combined), so it flashes in one shot at offset `0x0` — no separate offsets to juggle.
+Swap in the V3 filename and your actual serial port (`COMx` on Windows) as needed. Each file is a single **merged** image (bootloader + partition table + app combined), so it flashes in one shot at offset `0x0`.
 
-### Option B: official flasher.meshcore.io ("Custom Firmware" upload) — unverified
+### First boot — set your device name, Wi-Fi, and admin password
 
-[flasher.meshcore.io](https://flasher.meshcore.io) has a "Custom Firmware" option that accepts an arbitrary `.bin`, but it's built for official releases: it assumes a bootloader/partition table are already on the device and writes only the app portion, at the standard `0x10000` offset. Feeding it our merged image (Option A's file) puts the bootloader in the wrong place and the device boots to an "invalid header" error — this is exactly what happened when we first tried it.
+Use the **[Observer Setup tool](wifi-setup.html)** — connect over USB, fill in the fields, click Save. It sends the commands below for you over the browser's Web Serial API (Chrome/Edge only), so there's nothing to type at a terminal.
 
-For this flow, use the **app-only** image instead:
-
-- [Heltec V4 — app-only](firmware/mayomesh-heltec-v4-mqtt-observer-app-only.bin)
-- [Heltec V3 — app-only](firmware/mayomesh-heltec-v3-mqtt-observer-app-only.bin)
-
-Caveats, since this hasn't been confirmed on real hardware yet:
-- The device needs a bootloader and partition table already on it that's compatible with this build (i.e. it was flashed at least once before, by any means — official firmware, or our Option A image).
-- If the previously-flashed partition table allocated a smaller app partition than this build needs (the MQTT/TLS libraries make this build larger than a typical official one), the app may not fit and could behave unpredictably rather than failing cleanly.
-- We haven't verified the offset the "Custom Firmware" upload actually writes to — `0x10000` is the standard Arduino-ESP32 app offset and our best guess, not a confirmed fact.
-
-If you try this path, Option A (known-good) is the fallback if it doesn't boot cleanly.
-
-**First boot:** connect over serial at 115200 baud and set:
+Prefer to do it by hand? Connect over serial at 115200 baud and run:
 
 ```
 set name MyObserverNode
@@ -56,9 +52,9 @@ set wifi.pwd YourWiFiPassword
 reboot
 ```
 
-> **Change the default admin password.** These images ship with the fork's default CLI password (`password`) — set your own once connected: `password YourNewPassword`.
+> **Change the default admin password.** These images ship with the fork's default CLI password (`password`) — set your own once connected: `password YourNewPassword` (the setup tool has a field for this too).
 
-Then jump to [Step 4](#step-4-verify-the-connection) below to confirm it's connected.
+Check it connected with `get mqtt.status` — see [Verify the connection](#step-4-verify-the-connection) below for details.
 
 ---
 
@@ -132,6 +128,8 @@ set mqtt3.preset custom
 set mqtt3.server wss://mqtt.mayomesh.net:443
 set mqtt3.audience mqtt.mayomesh.net
 ```
+
+> **On non-PSRAM boards (e.g. Heltec V3), only 2 TLS/WSS slots can be active at once.** If you leave both public presets enabled *and* add Mayo Mesh in slot 3, one of the three will silently show as `(inactive)` in `get mqtt.status` — on V3 that'll be slot 3, meaning Mayo Mesh itself. Disable one of the public presets first (`set mqtt1.preset none`) to guarantee Mayo Mesh gets a connection.
 
 This uses JWT (Ed25519) authentication — the same scheme as the public analyzer presets — so there's no username/password to manage. The node signs its own connection using its identity key, keyed to the `audience` you set above.
 
