@@ -10,7 +10,12 @@
 #      that default MQTT slot 3 to it. Not upstream — see mqtt.md's maintainer note.
 #   3. Builds both envs and merges bootloader+partitions+app into a single
 #      flashable .bin per board (PlatformIO's custom "mergebin" target).
-#   4. Copies the merged images into ../firmware/, overwriting the published ones.
+#   4. Copies two files per board into ../firmware/, overwriting the published ones:
+#      - the merged image (flash at 0x0 with esptool directly — the reliable path)
+#      - the app-only image (for flasher.meshcore.io's "Custom Firmware" upload,
+#        which expects just the app at the standard 0x10000 offset with a
+#        bootloader/partition table already on the device — unverified without
+#        real hardware, see mqtt.md's caveat)
 #
 # Requirements: git, PlatformIO (`pio`). Run from anywhere; paths are script-relative.
 #
@@ -63,10 +68,17 @@ build_and_copy() {
   local env="$1" out_name="$2"
   echo "==> Building $env"
   (cd "$REPO_DIR" && pio run -e "$env" -t mergebin)
+
   local merged="$REPO_DIR/.pio/build/$env/firmware-merged.bin"
   [[ -f "$merged" ]] || { echo "error: expected output not found: $merged" >&2; exit 1; }
   cp "$merged" "$FIRMWARE_DIR/$out_name"
   echo "    -> $FIRMWARE_DIR/$out_name ($(du -h "$FIRMWARE_DIR/$out_name" | cut -f1))"
+
+  local app_only="$REPO_DIR/.pio/build/$env/firmware.bin"
+  local app_only_name="${out_name%.bin}-app-only.bin"
+  [[ -f "$app_only" ]] || { echo "error: expected output not found: $app_only" >&2; exit 1; }
+  cp "$app_only" "$FIRMWARE_DIR/$app_only_name"
+  echo "    -> $FIRMWARE_DIR/$app_only_name ($(du -h "$FIRMWARE_DIR/$app_only_name" | cut -f1))"
 }
 
 build_and_copy heltec_v4_repeater_observer_mqtt_mayomesh mayomesh-heltec-v4-mqtt-observer.bin

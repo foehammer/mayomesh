@@ -20,13 +20,32 @@ What's already set:
 - MQTT slot 3: connected to `wss://mqtt.mayomesh.net:443` (JWT auth, no credentials to enter)
 - Slots 1–2 still default to the public `analyzer-us` / `analyzer-eu` presets — leave them or disable with `set mqtt1.preset none` / `set mqtt2.preset none`
 
-**Flash it:** put the board into bootloader mode — hold **BOOT**, press and release **RST**, then release **BOOT** (same as in [Getting Started](getting-started.md)) — then with [esptool](https://github.com/espressif/esptool) installed (`pip install esptool`):
+### Option A: esptool (reliable, confirmed working)
+
+Put the board into bootloader mode — hold **BOOT**, press and release **RST**, then release **BOOT** (same as in [Getting Started](getting-started.md)) — then with [esptool](https://github.com/espressif/esptool) installed (`pip install esptool`):
 
 ```
+esptool.py --chip esp32s3 --port /dev/ttyUSB0 erase_flash
 esptool.py --chip esp32s3 --port /dev/ttyUSB0 write_flash 0x0 mayomesh-heltec-v4-mqtt-observer.bin
 ```
 
-Swap in the V3 filename and your actual serial port (`COMx` on Windows) as needed. Each file is a single merged image (bootloader + partition table + app), so it flashes in one shot at offset `0x0` — no separate offsets to juggle.
+Swap in the V3 filename and your actual serial port (`COMx` on Windows) as needed. The `erase_flash` step matters if the device was flashed by something else before (like the official web flasher) — it clears out any leftover bootloader/partition data so nothing old is left behind to conflict with the new image. This is a single **merged** image (bootloader + partition table + app combined), so it flashes in one shot at offset `0x0` — no separate offsets to juggle.
+
+### Option B: official flasher.meshcore.io ("Custom Firmware" upload) — unverified
+
+[flasher.meshcore.io](https://flasher.meshcore.io) has a "Custom Firmware" option that accepts an arbitrary `.bin`, but it's built for official releases: it assumes a bootloader/partition table are already on the device and writes only the app portion, at the standard `0x10000` offset. Feeding it our merged image (Option A's file) puts the bootloader in the wrong place and the device boots to an "invalid header" error — this is exactly what happened when we first tried it.
+
+For this flow, use the **app-only** image instead:
+
+- [Heltec V4 — app-only](firmware/mayomesh-heltec-v4-mqtt-observer-app-only.bin)
+- [Heltec V3 — app-only](firmware/mayomesh-heltec-v3-mqtt-observer-app-only.bin)
+
+Caveats, since this hasn't been confirmed on real hardware yet:
+- The device needs a bootloader and partition table already on it that's compatible with this build (i.e. it was flashed at least once before, by any means — official firmware, or our Option A image).
+- If the previously-flashed partition table allocated a smaller app partition than this build needs (the MQTT/TLS libraries make this build larger than a typical official one), the app may not fit and could behave unpredictably rather than failing cleanly.
+- We haven't verified the offset the "Custom Firmware" upload actually writes to — `0x10000` is the standard Arduino-ESP32 app offset and our best guess, not a confirmed fact.
+
+If you try this path, Option A (known-good) is the fallback if it doesn't boot cleanly.
 
 **First boot:** connect over serial at 115200 baud and set:
 
