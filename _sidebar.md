@@ -2,6 +2,7 @@
 - [Getting Started](getting-started.md)
 - [Meshtastic](meshtastic.md)
 - [MeshCore](meshcore.md)
+- [MeshCore MQTT Feed](mqtt.md)
 - [Meshtastic Data](mesh-data.md)
 - [Meshcore Coverage Area](mc-coverage.md)
 - [MeshCore Map](https://meshcore.mayomesh.net/)
