@@ -33,6 +33,14 @@
       maxLevel: 0,
       subMaxLevel: 3,
 
+      // Let links to downloadable assets (firmware .bin files, etc.) behave as
+      // normal browser navigations instead of being hijacked into docsify's
+      // hash-based SPA router (which tries to fetch/render them as markdown pages).
+      // Matched via `^pattern$` against the raw href exactly as written in the
+      // markdown source (relative, no leading slash) — see docsify's
+      // Compiler.prototype._matchNotCompileLink.
+      noCompileLinks: ['firmware/.*'],
+
       // Search
       search: {
         placeholder: 'Type to search',
