@@ -39,7 +39,7 @@ esptool.py --chip esp32s3 --port /dev/ttyUSB0 write_flash 0x0 mayomesh-heltec-v4
 
 Swap in the V3 filename and your actual serial port (`COMx` on Windows) as needed. Each file is a single **merged** image (bootloader + partition table + app combined), so it flashes in one shot at offset `0x0`.
 
-### First boot — set your device name, Wi-Fi, and admin password
+### First boot — set your device name, location, Wi-Fi, and admin password
 
 Use the **[Observer Setup tool](wifi-setup.html)** — connect over USB, fill in the fields, click Save. It sends the commands below for you over the browser's Web Serial API (Chrome/Edge only), so there's nothing to type at a terminal.
 
@@ -47,10 +47,14 @@ Prefer to do it by hand? Connect over serial at 115200 baud and run:
 
 ```
 set name MyObserverNode
+set lat 53.8000
+set lon -9.5000
 set wifi.ssid YourWiFiNetwork
 set wifi.pwd YourWiFiPassword
 reboot
 ```
+
+`set lat` / `set lon` are optional but worth setting for a fixed observer — they're what places the node correctly on the map (decimal degrees; find yours on Google Maps by right-clicking your location).
 
 > **Change the default admin password.** These images ship with the fork's default CLI password (`password`) — set your own once connected: `password YourNewPassword` (the setup tool has a field for this too).
 
