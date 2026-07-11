@@ -66,6 +66,8 @@
   }
   .pwd-row { display: flex; gap: 0.5rem; align-items: center; }
   .pwd-row input { flex: 1; }
+  .latlon-row { display: flex; gap: 0.5rem; }
+  .latlon-row input { flex: 1; }
   button {
     font-size: 0.95rem;
     padding: 0.6rem 1.1rem;
@@ -133,6 +135,12 @@
     <form id="setupForm" hidden>
       <label for="deviceName">Device name</label>
       <input type="text" id="deviceName" placeholder="MyObserverNode" required>
+
+      <label for="lat">Location <span class="hint">(optional — so the node shows up in the right place on the map; decimal degrees)</span></label>
+      <div class="latlon-row">
+        <input type="number" id="lat" placeholder="Latitude, e.g. 53.8000" step="any" min="-90" max="90">
+        <input type="number" id="lon" placeholder="Longitude, e.g. -9.5000" step="any" min="-180" max="180">
+      </div>
 
       <label for="wifiSsid">Wi-Fi network name (SSID)</label>
       <input type="text" id="wifiSsid" required>
@@ -273,9 +281,13 @@
     const pwd = $('wifiPwd').value;
     const adminPwd = $('adminPwd').value;
     const iata = $('iata').value.trim().toUpperCase();
+    const lat = $('lat').value.trim();
+    const lon = $('lon').value.trim();
 
     try {
       if (name) await sendLine('set name ' + name);
+      if (lat) await sendLine('set lat ' + lat);
+      if (lon) await sendLine('set lon ' + lon);
       await sendLine('set wifi.ssid ' + ssid);
       await sendLine('set wifi.pwd ' + pwd);
       if (iata) await sendLine('set mqtt.iata ' + iata);
