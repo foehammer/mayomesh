@@ -39,7 +39,9 @@
       // Matched via `^pattern$` against the raw href exactly as written in the
       // markdown source (relative, no leading slash) — see docsify's
       // Compiler.prototype._matchNotCompileLink.
-      noCompileLinks: ['firmware/.*'],
+      // wifi-setup.html needs a real page load too — it's a standalone Web Serial
+      // tool with its own <script>, not markdown content docsify should try to render.
+      noCompileLinks: ['firmware/.*', 'wifi-setup\\.html'],
 
       // Search
       search: {

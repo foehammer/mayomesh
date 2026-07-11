@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mayo Mesh — Observer Setup</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #ffffff;
+    --fg: #1a1a1a;
+    --muted: #666;
+    --border: #d8d8d8;
+    --accent: #2f6f4f;
+    --accent-fg: #ffffff;
+    --console-bg: #10141a;
+    --console-fg: #b9f2c8;
+    --ok: #2f6f4f;
+    --err: #a83232;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14171c;
+      --fg: #e8e8e8;
+      --muted: #9aa0a6;
+      --border: #33383f;
+      --accent: #4fae7c;
+      --accent-fg: #0b1410;
+      --console-bg: #0a0d11;
+      --console-fg: #8fe3ac;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 2rem 1rem 4rem;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+  }
+  main { max-width: 640px; margin: 0 auto; }
+  h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
+  p.lead { color: var(--muted); margin-top: 0; }
+  section {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.25rem;
+    margin-bottom: 1.25rem;
+  }
+  h2 { font-size: 1.05rem; margin-top: 0; }
+  label {
+    display: block;
+    font-size: 0.9rem;
+    margin: 0.9rem 0 0.3rem;
+  }
+  label .hint { color: var(--muted); font-weight: normal; font-size: 0.82rem; }
+  input[type=text], input[type=password] {
+    width: 100%;
+    padding: 0.55rem 0.6rem;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--fg);
+    font-size: 1rem;
+  }
+  .pwd-row { display: flex; gap: 0.5rem; align-items: center; }
+  .pwd-row input { flex: 1; }
+  button {
+    font-size: 0.95rem;
+    padding: 0.6rem 1.1rem;
+    border-radius: 6px;
+    border: 1px solid var(--accent);
+    background: var(--accent);
+    color: var(--accent-fg);
+    cursor: pointer;
+  }
+  button.secondary {
+    background: transparent;
+    color: var(--fg);
+    border-color: var(--border);
+  }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  #connectRow { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+  #connStatus { font-size: 0.9rem; color: var(--muted); }
+  #connStatus.connected { color: var(--ok); font-weight: 600; }
+  #connStatus.error { color: var(--err); font-weight: 600; }
+  #setupForm[hidden], #manualRow[hidden] { display: none; }
+  #console {
+    background: var(--console-bg);
+    color: var(--console-fg);
+    border-radius: 8px;
+    padding: 0.9rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.82rem;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 260px;
+    overflow-y: auto;
+    margin: 0;
+  }
+  #manualRow { display: flex; gap: 0.5rem; margin-top: 0.75rem; }
+  #manualRow input { flex: 1; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  .unsupported {
+    border-color: var(--err);
+  }
+  a { color: var(--accent); }
+  .steps { color: var(--muted); font-size: 0.9rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Mayo Mesh Observer Setup</h1>
+  <p class="lead">Set your device name and Wi-Fi credentials over USB — no serial terminal or typed commands required.</p>
+
+  <section id="unsupportedBox" hidden class="unsupported">
+    <h2>Browser not supported</h2>
+    <p>This tool uses the Web Serial API, which only works in <strong>Chrome or Edge</strong> (desktop). Firefox and Safari aren't supported. If you're already in Chrome/Edge, make sure you're on <code>https://</code> (not opening the file locally).</p>
+    <p>You can always fall back to a serial terminal and the manual commands in <a href="mqtt.md">the MQTT setup guide</a>.</p>
+  </section>
+
+  <section id="connectSection">
+    <h2>1. Connect</h2>
+    <p class="steps">Plug in your already-flashed observer over USB, then click Connect and pick it from the browser's device list.</p>
+    <div id="connectRow">
+      <button id="connectBtn">Connect to device</button>
+      <span id="connStatus">Not connected</span>
+    </div>
+  </section>
+
+  <section id="formSection">
+    <h2>2. Configure</h2>
+    <form id="setupForm" hidden>
+      <label for="deviceName">Device name</label>
+      <input type="text" id="deviceName" placeholder="MyObserverNode" required>
+
+      <label for="wifiSsid">Wi-Fi network name (SSID)</label>
+      <input type="text" id="wifiSsid" required>
+
+      <label for="wifiPwd">Wi-Fi password</label>
+      <div class="pwd-row">
+        <input type="password" id="wifiPwd" required>
+        <button type="button" class="secondary" id="toggleWifiPwd">Show</button>
+      </div>
+
+      <label for="adminPwd">New admin password <span class="hint">(optional — replaces the default "password"; leave blank to skip)</span></label>
+      <div class="pwd-row">
+        <input type="password" id="adminPwd">
+        <button type="button" class="secondary" id="toggleAdminPwd">Show</button>
+      </div>
+
+      <label for="iata">IATA / region code <span class="hint">(optional — 3 letters, namespaces this device's MQTT topics; defaults to "MAY" if left blank, which is fine to share across devices)</span></label>
+      <input type="text" id="iata" placeholder="MAY" maxlength="3" pattern="[A-Za-z]{3}" style="text-transform:uppercase;">
+
+      <p style="margin-top: 1.25rem;">
+        <button type="submit" id="saveBtn">Save &amp; reboot</button>
+      </p>
+    </form>
+    <p id="formHint" class="steps">Connect to a device first to unlock this form.</p>
+  </section>
+
+  <section>
+    <h2>Console</h2>
+    <p class="steps">Raw output from the device, for confirmation and troubleshooting.</p>
+    <pre id="console"></pre>
+    <div id="manualRow" hidden>
+      <input type="text" id="manualCmd" placeholder="manual command, e.g. get wifi.status">
+      <button type="button" class="secondary" id="manualSendBtn">Send</button>
+    </div>
+  </section>
+</main>
+
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const consoleEl = $('console');
+  const connectBtn = $('connectBtn');
+  const connStatus = $('connStatus');
+  const setupForm = $('setupForm');
+  const formHint = $('formHint');
+  const saveBtn = $('saveBtn');
+  const manualRow = $('manualRow');
+  const manualCmd = $('manualCmd');
+  const manualSendBtn = $('manualSendBtn');
+
+  let port = null;
+  let writer = null;
+  let reader = null;
+  let readLoopPromise = null;
+
+  function log(line) {
+    consoleEl.textContent += line;
+    consoleEl.scrollTop = consoleEl.scrollHeight;
+  }
+
+  function setStatus(text, cls) {
+    connStatus.textContent = text;
+    connStatus.className = cls || '';
+  }
+
+  function sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  if (!('serial' in navigator)) {
+    $('unsupportedBox').hidden = false;
+    connectBtn.disabled = true;
+  }
+
+  async function readLoop() {
+    const decoder = new TextDecoderStream();
+    const readableClosed = port.readable.pipeTo(decoder.writable).catch(() => {});
+    reader = decoder.readable.getReader();
+    try {
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        if (value) log(value);
+      }
+    } catch (e) {
+      // Port likely closed (e.g. device rebooted) — expected at the end of a save.
+    } finally {
+      try { reader.releaseLock(); } catch (e) {}
+      await readableClosed;
+    }
+  }
+
+  async function connect() {
+    try {
+      port = await navigator.serial.requestPort();
+      await port.open({ baudRate: 115200 });
+      writer = port.writable.getWriter();
+      readLoopPromise = readLoop();
+
+      setStatus('Connected', 'connected');
+      connectBtn.textContent = 'Reconnect';
+      setupForm.hidden = false;
+      formHint.hidden = true;
+      manualRow.hidden = false;
+      log('--- connected ---\n');
+    } catch (e) {
+      setStatus('Connection failed: ' + e.message, 'error');
+    }
+  }
+
+  async function sendLine(cmd) {
+    log('\n> ' + cmd + '\n');
+    const encoder = new TextEncoder();
+    await writer.write(encoder.encode(cmd + '\r\n'));
+    await sleep(400); // give the device time to process + reply before the next command
+  }
+
+  connectBtn.addEventListener('click', connect);
+
+  $('toggleWifiPwd').addEventListener('click', () => {
+    const f = $('wifiPwd');
+    f.type = f.type === 'password' ? 'text' : 'password';
+  });
+  $('toggleAdminPwd').addEventListener('click', () => {
+    const f = $('adminPwd');
+    f.type = f.type === 'password' ? 'text' : 'password';
+  });
+
+  setupForm.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    if (!writer) return;
+
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Saving…';
+
+    const name = $('deviceName').value.trim();
+    const ssid = $('wifiSsid').value;
+    const pwd = $('wifiPwd').value;
+    const adminPwd = $('adminPwd').value;
+    const iata = $('iata').value.trim().toUpperCase();
+
+    try {
+      if (name) await sendLine('set name ' + name);
+      await sendLine('set wifi.ssid ' + ssid);
+      await sendLine('set wifi.pwd ' + pwd);
+      if (iata) await sendLine('set mqtt.iata ' + iata);
+      if (adminPwd) await sendLine('password ' + adminPwd);
+      await sendLine('reboot');
+
+      log('\n--- reboot sent — device will disconnect now, check the console output above for "OK" after each command ---\n');
+      setStatus('Saved — device rebooting', 'connected');
+    } catch (e) {
+      log('\n--- error sending commands: ' + e.message + ' ---\n');
+      setStatus('Error while saving: ' + e.message, 'error');
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Save & reboot';
+    }
+  });
+
+  manualSendBtn.addEventListener('click', async () => {
+    const cmd = manualCmd.value.trim();
+    if (!cmd || !writer) return;
+    await sendLine(cmd);
+    manualCmd.value = '';
+  });
+  manualCmd.addEventListener('keydown', (ev) => {
+    if (ev.key === 'Enter') manualSendBtn.click();
+  });
+})();
+</script>
+</body>
+</html>
