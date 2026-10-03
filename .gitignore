@@ -1,2 +1,3 @@
 .vscode/launch.json
 run.cmd
+firmware-build/MeshCore/
