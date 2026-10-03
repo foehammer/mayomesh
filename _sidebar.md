@@ -2,6 +2,6 @@
 - [Meshtastic](meshtastic.md)
 - [MeshCore](meshcore.md)
 - [What Device?](what-device.md)
-- [Meshtastic Data](mesh-data.md)
+- [MeshCore Data](meshcore-data.md)
 - [Meshcore Coverage Area](mc-coverage.md)
 - [MeshCore Map](https://meshcore.mayomesh.net/)
